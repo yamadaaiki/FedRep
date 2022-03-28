@@ -109,7 +109,10 @@ def test_img_local_all(net, args, dataset_test, dict_users_test,w_locals=None,w_
         if w_locals is not None:
             w_local = net_local.state_dict()
             for k in w_locals[idx].keys():
-                w_local[k] = w_locals[idx][k]
+                if w_glob_keys is not None and k not in w_glob_keys:
+                    w_local[k] = w_locals[idx][k]
+                elif w_glob_keys is None:
+                    w_local[k] = w_locals[idx][k]
             net_local.load_state_dict(w_local)
         net_local.eval()
         if 'femnist' in args.dataset or 'sent140' in args.dataset:
