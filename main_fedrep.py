@@ -84,7 +84,7 @@ if __name__ == '__main__':
         else:
             w_glob_keys = net_keys[total_num_layers - 2:]
 
-    if args.alg == 'fedavg' or args.alg == 'prox':
+    if args.alg == 'fedavg' or args.alg == 'prox' or args.alg == 'maml':
         w_glob_keys = []
     if 'sent140' not in args.dataset:
         w_glob_keys = list(itertools.chain.from_iterable(w_glob_keys))
