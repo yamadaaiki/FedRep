@@ -1,5 +1,8 @@
 # Modified from: https://github.com/pliang279/LG-FedAvg/blob/master/models/Update.py
-# credit goes to: Paul Pu Liang
+# credit: Paul Pu Liang
+
+# For MAML (PerFedAvg) implementation, code was adapted from https://github.com/AntreasAntoniou/HowToTrainYourMAMLPytorch/blob/master/few_shot_learning_system.py
+# credit: Antreas Antoniou
 
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
