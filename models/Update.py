@@ -150,8 +150,6 @@ class LocalUpdateMAML(object):
                     net.zero_grad()
                     log_probs_sup = net(sup_x)
                     loss_sup = self.loss_func(log_probs_sup,sup_y)
-                    if loss_sup != loss_sup:
-                        continue
                     grads = torch.autograd.grad(loss_sup, names_weights_copy.values(),
                                                     create_graph=True, allow_unused=True)
                     names_grads_copy = dict(zip(names_weights_copy.keys(), grads))
