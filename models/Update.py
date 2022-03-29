@@ -78,6 +78,7 @@ class LocalUpdateMAML(object):
         lr=lr, momentum=0.5
         )
         
+        # MAML code adapted from AntreasAntoniou/HowToTrainYourMAMLPytorch/few_shot_learning_system.py - credit: Antreas Antoniou
         local_eps = self.args.local_ep
         epoch_loss = []
         num_updates = 0
