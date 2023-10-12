@@ -63,6 +63,7 @@ if __name__ == '__main__':
     total_num_layers = len(net_glob.state_dict().keys())
     print(net_glob.state_dict().keys())
     net_keys = [*net_glob.state_dict().keys()]
+    # in python if use *list and list = [1, 2, 3], print(*list) output 1 2 3 not [1,2,3].
 
     # specify the representation parameters (in w_glob_keys) and head parameters (all others)
     if args.alg == 'fedrep' or args.alg == 'fedper':
@@ -73,6 +74,7 @@ if __name__ == '__main__':
         elif 'sent140' in args.dataset:
             w_glob_keys = [net_keys[i] for i in [0,1,2,3,4,5]]
         else:
+            # Insert all but the last one layers (weights and bias).
             w_glob_keys = net_keys[:-2]
     elif args.alg == 'lg':
         if 'cifar' in  args.dataset:
@@ -104,6 +106,8 @@ if __name__ == '__main__':
         print('# Params: {} (local), {} (global); Percentage {:.2f} ({}/{})'.format(
             num_param_local, num_param_glob, percentage_param, num_param_glob, num_param_local))
     print("learning rate, batch size: {}, {}".format(args.lr, args.local_bs))
+    
+    raise
 
     # generate list of local models for each user
     net_local_list = []
