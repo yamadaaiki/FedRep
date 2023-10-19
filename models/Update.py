@@ -582,8 +582,8 @@ class LocalUpdate(object):
                     w_glob_keys = [net.weight_keys[i] for i in [0,1,3,4]]
                 elif 'sent140' in self.args.dataset:
                     w_glob_keys = [net_keys[i] for i in [0,1,2,3,4,5]]
-                elif 'mnist' in args.dataset:
-                    w_glob_keys = [net_glob.weight_keys[i] for i in [0,1,2]]
+                elif 'mnist' in self.args.dataset:
+                    w_glob_keys = [net.weight_keys[i] for i in [0,1,2]]
             elif 'maml' in self.args.alg:
                 local_eps = 5
                 w_glob_keys = []
@@ -591,6 +591,7 @@ class LocalUpdate(object):
                 local_eps =  max(10,local_eps-self.args.local_rep_ep)
         
         head_eps = local_eps-self.args.local_rep_ep
+        # (4,5,1) if last, (5, 10, 5)
         epoch_loss = []
         num_updates = 0
         if 'sent140' in self.args.dataset:
@@ -598,14 +599,18 @@ class LocalUpdate(object):
         for iter in range(local_eps):
             done = False
 
+            #  初めの数エポックはローカルのヘッドのみ更新を行う
             # for FedRep, first do local epochs for the head
             if (iter < head_eps and self.args.alg == 'fedrep') or last:
                 for name, param in net.named_parameters():
                     if name in w_glob_keys:
+                        # w_glob_keysとに含まれているレイヤーはautograd_graphの作成を行わない
+                        # パラメータの更新は行わない
                         param.requires_grad = False
                     else:
                         param.requires_grad = True
             
+            # その後残りの1エポックでボディの学習を行う（ヘッドは更新されない）
             # then do local epochs for the representation
             elif iter == head_eps and self.args.alg == 'fedrep' and not last:
                 for name, param in net.named_parameters():
@@ -615,6 +620,7 @@ class LocalUpdate(object):
                         param.requires_grad = False
 
             # all other methods update all parameters simultaneously
+            # fedrep出なければこっち
             elif self.args.alg != 'fedrep':
                 for name, param in net.named_parameters():
                      param.requires_grad = True 

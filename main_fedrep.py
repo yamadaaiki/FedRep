@@ -27,7 +27,7 @@ if __name__ == '__main__':
     args = args_parser()
     args.device = torch.device('cuda:{}'.format(args.gpu) if torch.cuda.is_available() and args.gpu != -1 else 'cpu')
 
-    lens = np.ones(args.num_users)
+    lens = np.ones(args.num_users) # clientごとのデータ数を格納するndarray
     if 'cifar' in args.dataset or args.dataset == 'mnist':
         dataset_train, dataset_test, dict_users_train, dict_users_test = get_data(args)
         for idx in dict_users_train.keys():
@@ -106,8 +106,6 @@ if __name__ == '__main__':
         print('# Params: {} (local), {} (global); Percentage {:.2f} ({}/{})'.format(
             num_param_local, num_param_glob, percentage_param, num_param_glob, num_param_local))
     print("learning rate, batch size: {}, {}".format(args.lr, args.local_bs))
-    
-    raise
 
     # generate list of local models for each user
     net_local_list = []
@@ -146,6 +144,7 @@ if __name__ == '__main__':
                     local = LocalUpdate(args=args, dataset=dataset_train[list(dataset_train.keys())[idx][:args.m_tr]], idxs=dict_users_train, indd=indd)
             else:
                 if args.epochs == iter:
+                    # 最後だけこっち？ けどたぶん同じ -> 変える必要ない
                     local = LocalUpdate(args=args, dataset=dataset_train, idxs=dict_users_train[idx][:args.m_ft])
                 else:
                     local = LocalUpdate(args=args, dataset=dataset_train, idxs=dict_users_train[idx][:args.m_tr])
@@ -153,11 +152,12 @@ if __name__ == '__main__':
             net_local = copy.deepcopy(net_glob)
             w_local = net_local.state_dict()
             if args.alg != 'fedavg' and args.alg != 'prox':
+                # 毎回呼び出される
                 for k in w_locals[idx].keys():
                     if k not in w_glob_keys:
                         w_local[k] = w_locals[idx][k]
             net_local.load_state_dict(w_local)
-            last = iter == args.epochs
+            last = (iter == args.epochs) # 最後のエポックだけlast = Trueになる
             if 'femnist' in args.dataset or 'sent140' in args.dataset:
                 w_local, loss, indd = local.train(net=net_local.to(args.device),ind=idx, idx=clients[idx], w_glob_keys=w_glob_keys, lr=args.lr,last=last)
             else:
@@ -165,18 +165,20 @@ if __name__ == '__main__':
             loss_locals.append(copy.deepcopy(loss))
             total_len += lens[idx]
             if len(w_glob) == 0:
+                # roundの最初だけこっち
                 w_glob = copy.deepcopy(w_local)
                 for k,key in enumerate(net_glob.state_dict().keys()):
                     w_glob[key] = w_glob[key]*lens[idx]
                     w_locals[idx][key] = w_local[key]
             else:
+                # 以降こっち
                 for k,key in enumerate(net_glob.state_dict().keys()):
                     if key in w_glob_keys:
                         w_glob[key] += w_local[key]*lens[idx]
                     else:
                         w_glob[key] += w_local[key]*lens[idx]
                     w_locals[idx][key] = w_local[key]
-
+            
             times_in.append( time.time() - start_in )
         loss_avg = sum(loss_locals) / len(loss_locals)
         loss_train.append(loss_avg)
